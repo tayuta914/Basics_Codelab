@@ -4,6 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,7 +23,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,7 +48,7 @@ class MainActivity : ComponentActivity() {
 fun MyApp(
     modifier: Modifier = Modifier,
 ) {
-    var shouldShowOnboarding by remember { mutableStateOf(true) }
+    var shouldShowOnboarding by rememberSaveable { mutableStateOf(true) }
 
     Surface(modifier) {
         if (shouldShowOnboarding) {
@@ -60,7 +63,7 @@ fun MyApp(
 private fun Greetings(
     modifier: Modifier = Modifier,
     // 1000のあいさつ文を作成
-    names: List<String> = List(1000) { "$it" }
+    names: List<String> = List(1000) { "$it" },
 ) {
     // LazyColumnはAndroidViewで言うRecyclerViewに相当する
     LazyColumn(modifier = modifier.padding(vertical = 4.dp)) {
@@ -73,9 +76,15 @@ private fun Greetings(
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     // rememberで再コンポジションの前後で状態を保持するには、remember を使用して可変状態を記憶する
-    var expanded = remember { mutableStateOf(false) }
+    var expanded = rememberSaveable { mutableStateOf(false) }
     // 各アイテムを個別で展開するように調整
-    var expandPadding = if (expanded.value) 48.dp else 0.dp
+    val expandPadding by animateDpAsState(
+        if (expanded.value) 48.dp else 0.dp,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        )
+    )
     Surface(color = MaterialTheme.colorScheme.primary) {
         Column(
             modifier = modifier
